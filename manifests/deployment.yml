@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "azuresevopsclustername-8d6d"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "azuresevopsclustername-8d6d"
+  template:
+    metadata:
+      labels:
+        app: "azuresevopsclustername-8d6d"
+    spec:
+      containers:
+        - name: "azuresevopsclustername-8d6d"
+          image: "azuresevopsclusternameacr.azurecr.io/azuresevopsclustername"
+          ports:
+          - containerPort: 80
