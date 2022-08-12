@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: azuresevopsclusternameacr.azurecr.io
+        username: ${{ secrets.acr_azuresevopsclusternameacr_username }}
+        password: ${{ secrets.acr_azuresevopsclusternameacr_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/" -f  "Dockerfile" -t azuresevopsclusternameacr.azurecr.io/azuresevopsclustername:${{ github.sha }} --label dockerfile-path=Dockerfile
+        docker push azuresevopsclusternameacr.azurecr.io/azuresevopsclustername:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_azuresevopsclustername_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep azuresevopsclustername90d0 | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace azuresevopsclustername90d0`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: azuresevopsclustername90d0
+        container-registry-url: azuresevopsclusternameacr.azurecr.io
+        container-registry-username: ${{ secrets.acr_azuresevopsclusternameacr_username }}
+        container-registry-password: ${{ secrets.acr_azuresevopsclusternameacr_password }}
+        secret-name: azuresevopscdockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: azuresevopsclustername90d0
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          azuresevopsclusternameacr.azurecr.io/azuresevopsclustername:${{ github.sha }}
+        imagepullsecrets: |
+          azuresevopscdockerauth
