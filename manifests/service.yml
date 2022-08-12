@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: "azuresevopsclustername-8d6d"
+    labels:
+        app: "azuresevopsclustername-8d6d"
+spec:
+    type: LoadBalancer
+    ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    selector:
+        app: "azuresevopsclustername-8d6d"
